@@ -1,17 +1,16 @@
 from typing import Optional, List, Dict
-from .base import AppException, ErrorCode, ErrorDetail
+from .base import AppException, ErrorDetail
+from http import HTTPStatus
 
 class DatabaseException(AppException):
     def __init__(
         self,
-        code: ErrorCode = ErrorCode.DATABASE_ERROR,
         message: str = "Database error occurred",
         details: Optional[List[ErrorDetail]] = None,
         status_code: int = 500,
         headers: Optional[Dict[str, str]] = None
     ):
         super().__init__(
-            code=code,
             message=message,
             details=details,
             status_code=status_code,
@@ -25,7 +24,7 @@ class ConnectionException(DatabaseException):
         details: Optional[List[ErrorDetail]] = None
     ):
         super().__init__(
-            code=ErrorCode.CONNECTION_ERROR,
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
             message=message,
             details=details
         )
@@ -37,7 +36,7 @@ class QueryException(DatabaseException):
         details: Optional[List[ErrorDetail]] = None
     ):
         super().__init__(
-            code=ErrorCode.QUERY_ERROR,
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
             message=message,
             details=details
         )

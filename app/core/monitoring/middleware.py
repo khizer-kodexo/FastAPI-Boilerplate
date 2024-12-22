@@ -6,18 +6,14 @@ import time
 from starlette.responses import Response
 
 class SentryContextMiddleware(BaseHTTPMiddleware):
-    """Middleware to add request context to Sentry events"""
-
     async def dispatch(
         self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
         with sentry_sdk.configure_scope() as scope:
-            # Add request information to Sentry scope
             scope.set_extra("request_id", request.state.request_id)
             scope.set_tag("http_method", request.method)
             scope.set_tag("path", request.url.path)
 
-            # Add user information if available
             if hasattr(request.state, "user"):
                 scope.set_user({
                     "id": request.state.user.id,

@@ -45,17 +45,13 @@ class SentryConfig:
         self.custom_tags = custom_tags or {}
 
 class CustomEventScrubber(EventScrubber):
-    """Custom event scrubber to handle sensitive data"""
-    
     def __init__(self, sensitive_fields: Set[str]):
         super().__init__()
         self.sensitive_fields = sensitive_fields
-        self.sensitive_pattern = re.compile(
-            '|'.join(f'(?i){field}' for field in sensitive_fields)
-        )
+        pattern = '|'.join(field for field in sensitive_fields)
+        self.sensitive_pattern = re.compile(pattern, re.IGNORECASE)
 
     def scrub_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Scrub sensitive data from the event payload"""
         if not isinstance(data, dict):
             return data
 
@@ -72,14 +68,11 @@ class CustomEventScrubber(EventScrubber):
         return scrubbed_data
 
 class SentryService:
-    """Service for managing Sentry integration"""
-
     def __init__(self, config: SentryConfig):
         self.config = config
         self._initialized = False
 
     def initialize(self) -> None:
-        """Initialize Sentry SDK with configurations"""
         if self._initialized:
             logger.warning("Sentry is already initialized")
             return
@@ -101,7 +94,6 @@ class SentryService:
                 event_scrubber=CustomEventScrubber(self.config.sensitive_fields)
             )
 
-            # Set global tags
             for key, value in self.config.custom_tags.items():
                 sentry_sdk.set_tag(key, value)
 
@@ -119,7 +111,6 @@ class SentryService:
             raise
 
     def _get_integrations(self) -> List[Any]:
-        """Get list of Sentry integrations"""
         return [
             FastApiIntegration(transaction_style="url"),
             AsyncioIntegration(),
@@ -131,14 +122,11 @@ class SentryService:
         ]
 
     def _before_send(self, event: Dict[str, Any], hint: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Process event before sending to Sentry"""
-        # Check if error should be ignored
         if hint.get("exc_info"):
             exc_type, _, _ = hint["exc_info"]
             if exc_type in self.config.ignore_errors:
                 return None
 
-        # Add custom context
         event.setdefault("contexts", {}).update({
             "app_info": {
                 "name": settings.app.PROJECT_NAME,
@@ -149,14 +137,11 @@ class SentryService:
         return event
 
     def _before_breadcrumb(self, breadcrumb: Dict[str, Any], hint: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Process breadcrumb before adding to event"""
-        # Filter out sensitive data from breadcrumbs
         if "data" in breadcrumb:
             breadcrumb["data"] = self._filter_sensitive_data(breadcrumb["data"])
         return breadcrumb
 
     def _filter_sensitive_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Filter sensitive data from dictionary"""
         if isinstance(data, dict):
             return {
                 key: "[Filtered]" if any(
@@ -173,7 +158,6 @@ class SentryService:
 
 @lru_cache
 def get_sentry_service() -> SentryService:
-    """Get or create Sentry service instance"""
     config = SentryConfig(
         dsn=settings.logging.SENTRY_DSN,
         environment=settings.logging.SENTRY_ENVIRONMENT,

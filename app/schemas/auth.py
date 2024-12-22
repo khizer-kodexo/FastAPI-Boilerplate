@@ -1,5 +1,4 @@
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, EmailStr
 
 class TokenResponse(BaseModel):
     access_token: str
@@ -9,3 +8,7 @@ class TokenResponse(BaseModel):
 
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str

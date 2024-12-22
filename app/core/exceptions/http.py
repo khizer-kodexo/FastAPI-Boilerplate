@@ -1,17 +1,16 @@
 from typing import Optional, List, Dict
-from .base import AppException, ErrorCode, ErrorDetail
+from .base import AppException, ErrorDetail
+from http import HTTPStatus
 
 class HTTPException(AppException):
     def __init__(
         self,
         status_code: int,
-        code: ErrorCode,
         message: str,
         details: Optional[List[ErrorDetail]] = None,
         headers: Optional[Dict[str, str]] = None
     ):
         super().__init__(
-            code=code,
             message=message,
             details=details,
             status_code=status_code,
@@ -26,8 +25,7 @@ class BadRequestException(HTTPException):
         headers: Optional[Dict[str, str]] = None
     ):
         super().__init__(
-            status_code=400,
-            code=ErrorCode.INVALID_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
             message=message,
             details=details,
             headers=headers
@@ -43,8 +41,7 @@ class UnauthorizedException(HTTPException):
         if not headers:
             headers = {"WWW-Authenticate": "Bearer"}
         super().__init__(
-            status_code=401,
-            code=ErrorCode.UNAUTHORIZED,
+            status_code=HTTPStatus.UNAUTHORIZED,
             message=message,
             details=details,
             headers=headers
@@ -58,8 +55,7 @@ class ForbiddenException(HTTPException):
         headers: Optional[Dict[str, str]] = None
     ):
         super().__init__(
-            status_code=403,
-            code=ErrorCode.INSUFFICIENT_PERMISSIONS,
+            status_code=HTTPStatus.FORBIDDEN,
             message=message,
             details=details,
             headers=headers
@@ -73,8 +69,7 @@ class NotFoundException(HTTPException):
         headers: Optional[Dict[str, str]] = None
     ):
         super().__init__(
-            status_code=404,
-            code=ErrorCode.RESOURCE_NOT_FOUND,
+            status_code=HTTPStatus.NOT_FOUND,
             message=message,
             details=details,
             headers=headers
@@ -88,8 +83,7 @@ class ConflictException(HTTPException):
         headers: Optional[Dict[str, str]] = None
     ):
         super().__init__(
-            status_code=409,
-            code=ErrorCode.DUPLICATE_RESOURCE,
+            status_code=HTTPStatus.CONFLICT,
             message=message,
             details=details,
             headers=headers
@@ -103,8 +97,7 @@ class ValidationException(HTTPException):
         headers: Optional[Dict[str, str]] = None
     ):
         super().__init__(
-            status_code=422,
-            code=ErrorCode.VALIDATION_ERROR,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             message=message,
             details=details,
             headers=headers
@@ -118,8 +111,7 @@ class RateLimitException(HTTPException):
         headers: Optional[Dict[str, str]] = None
     ):
         super().__init__(
-            status_code=429,
-            code=ErrorCode.RATE_LIMIT_EXCEEDED,
+            status_code=HTTPStatus.TOO_MANY_REQUESTS,
             message=message,
             details=details,
             headers=headers

@@ -21,7 +21,7 @@ class LoggingSettings(BaseSettings):
     # File Logging
     LOG_TO_FILE: bool = True
     LOG_FILE_PATH: str = "logs/app.log"
-    LOG_FILE_MAX_SIZE: int = 10485760  # 10MB
+    LOG_FILE_MAX_SIZE: int = 10485760
     LOG_FILE_BACKUP_COUNT: int = 5
     LOG_FILE_ENCODING: str = "utf-8"
     
@@ -34,20 +34,7 @@ class LoggingSettings(BaseSettings):
     SENTRY_DSN: Optional[str] = None
     SENTRY_ENVIRONMENT: str = "production"
     SENTRY_TRACES_SAMPLE_RATE: float = 1.0
-    
-    # ELK Stack Integration
-    ELK_ENABLED: bool = False
-    ELASTICSEARCH_HOST: Optional[str] = None
-    ELASTICSEARCH_PORT: int = 9200
-    ELASTICSEARCH_USERNAME: Optional[str] = None
-    ELASTICSEARCH_PASSWORD: Optional[str] = None
-    
-    # Metrics and Tracing
-    ENABLE_METRICS: bool = True
-    METRICS_PATH: str = "/metrics"
-    ENABLE_TRACING: bool = True
-    JAEGER_HOST: Optional[str] = None
-    JAEGER_PORT: int = 6831
+
     
     def get_logging_config(self) -> Dict[str, Any]:
         return {
