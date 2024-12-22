@@ -2,10 +2,8 @@
 *.ipynb
 *.pyc
 *.pdf
-main.py
 test.py
 new.py
-chromadb_old.py
 home.html
 *.pickle
 *.json
@@ -17,3 +15,7 @@ scripts/locust_testing.py
 *.mp3
 *.json
 script.py
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore
