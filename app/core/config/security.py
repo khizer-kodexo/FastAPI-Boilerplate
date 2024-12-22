@@ -8,7 +8,8 @@ class SecuritySettings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
-    
+    COOKIE_SECURE: bool = False
+
     # Password Settings
     PASSWORD_MIN_LENGTH: int = 8
     PASSWORD_MAX_LENGTH: int = 50
@@ -40,7 +41,7 @@ class SecuritySettings(BaseSettings):
     
     # Rate Limiting
     RATE_LIMIT_ENABLED: bool = True
-    RATE_LIMIT_STORAGE: str = "memory"  # or "redis"
+    RATE_LIMIT_STORAGE: str = "memory"
     
     # IP Filtering
     IP_WHITELIST: List[str] = []

@@ -13,10 +13,6 @@ from ..core.config import settings
 logger = logging.getLogger(__name__)
 
 class RequestIDMiddleware(BaseHTTPMiddleware):
-    """
-    Adds a unique request ID to each incoming request.
-    This helps in request tracing and debugging across services.
-    """
     def __init__(
         self,
         app: ASGIApp,
@@ -53,10 +49,6 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
             return False
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
-    """
-    Logs details about incoming requests and their responses.
-    Helps in monitoring and debugging API usage.
-    """
     def __init__(
         self,
         app: ASGIApp,
@@ -78,7 +70,6 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
         start_time = time.time()
         
-        # Extract request details
         request_details = {
             "request_id": getattr(request.state, "request_id", None),
             "method": request.method,
@@ -118,10 +109,6 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             raise
 
 class ResponseTimeMiddleware(BaseHTTPMiddleware):
-    """
-    Monitors and logs response times for all requests.
-    Helps in performance monitoring and optimization.
-    """
     def __init__(
         self,
         app: ASGIApp,
@@ -141,7 +128,6 @@ class ResponseTimeMiddleware(BaseHTTPMiddleware):
         
         response.headers["X-Process-Time"] = f"{process_time:.4f} seconds"
         
-        # Log slow requests
         if process_time > self.slow_request_threshold:
             logger.warning(
                 "Slow request detected",
@@ -157,14 +143,10 @@ class ResponseTimeMiddleware(BaseHTTPMiddleware):
         return response
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
-    """
-    Implements rate limiting for API requests.
-    Prevents abuse and ensures fair usage of resources.
-    """
     def __init__(
         self,
         app: ASGIApp,
-        rate_limit: int = 60,  # requests per minute
+        rate_limit: int = 60,
         window_size: int = 60, 
         exclude_paths: Optional[List[str]] = None
     ):
@@ -180,7 +162,6 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         if request.url.path in self.exclude_paths:
             return await call_next(request)
 
-        # Get client identifier (IP or API key)
         client_id = self._get_client_id(request)
         
         current_time = time.time()
@@ -204,21 +185,17 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
     def _get_client_id(self, request: Request) -> str:
-        """Get unique identifier for the client"""
-        # Try to get API key first
+
         api_key = request.headers.get("X-API-Key")
         if api_key:
             return f"api_key:{api_key}"
         
-        # Fall back to IP address
         return f"ip:{request.client.host}"
 
     def _check_rate_limit(self, client_id: str, current_time: float) -> bool:
-        """Check if client has exceeded rate limit"""
         if client_id not in self.requests:
             self.requests[client_id] = []
         
-        # Remove old requests
         self.requests[client_id] = [
             req_time for req_time in self.requests[client_id]
             if current_time - req_time <= self.window_size
@@ -231,21 +208,16 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return True
 
     def _get_retry_after(self, client_id: str) -> int:
-        """Get time until rate limit resets"""
         if not self.requests[client_id]:
             return 0
         oldest_request = min(self.requests[client_id])
         return int(oldest_request + self.window_size - time.time())
 
 class CacheMiddleware(BaseHTTPMiddleware):
-    """
-    Implements response caching for GET requests.
-    Improves performance by caching frequently accessed data.
-    """
     def __init__(
         self,
         app: ASGIApp,
-        cache_time: int = 300,  # 5 minutes
+        cache_time: int = 300,
         exclude_paths: Optional[List[str]] = None,
         exclude_query_params: Optional[List[str]] = None
     ):
@@ -258,41 +230,32 @@ class CacheMiddleware(BaseHTTPMiddleware):
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
-        # Only cache GET requests
         if request.method != "GET":
             return await call_next(request)
 
-        # Skip caching for excluded paths
         if request.url.path in self.exclude_paths:
             return await call_next(request)
 
-        # Skip caching if nocache parameters present
         if any(param in request.query_params for param in self.exclude_query_params):
             return await call_next(request)
 
-        # Generate cache key
         cache_key = self._generate_cache_key(request)
         
-        # Check cache
         cached_response = self._get_cached_response(cache_key)
         if cached_response:
             return cached_response
 
-        # Get fresh response
         response = await call_next(request)
         
-        # Cache response if appropriate
         if response.status_code == 200:
             await self._cache_response(cache_key, response)
         
         return response
 
     def _generate_cache_key(self, request: Request) -> str:
-        """Generate unique cache key for request"""
         return f"{request.method}:{request.url.path}:{str(request.query_params)}"
 
     def _get_cached_response(self, cache_key: str) -> Optional[Response]:
-        """Get cached response if available and not expired"""
         if cache_key in self.cache:
             cached_time, response = self.cache[cache_key]
             if time.time() - cached_time <= self.cache_time:
@@ -301,14 +264,11 @@ class CacheMiddleware(BaseHTTPMiddleware):
         return None
 
     async def _cache_response(self, cache_key: str, response: Response) -> None:
-        """Cache response for future use"""
         self.cache[cache_key] = (time.time(), response)
         
-        # Schedule cache cleanup
         asyncio.create_task(self._cleanup_cache())
 
     async def _cleanup_cache(self) -> None:
-        """Remove expired cache entries"""
         current_time = time.time()
         expired_keys = [
             key for key, (cached_time, _) in self.cache.items()
@@ -318,10 +278,6 @@ class CacheMiddleware(BaseHTTPMiddleware):
             del self.cache[key]
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    """
-    Adds security headers to all responses.
-    Enhances application security by implementing recommended headers.
-    """
     def __init__(
         self,
         app: ASGIApp,

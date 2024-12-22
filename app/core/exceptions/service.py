@@ -1,17 +1,16 @@
 from typing import Optional, List, Dict
-from .base import AppException, ErrorCode, ErrorDetail
+from .base import AppException, ErrorDetail
+from http import HTTPStatus
 
 class ServiceException(AppException):
     def __init__(
         self,
-        code: ErrorCode = ErrorCode.SERVICE_UNAVAILABLE,
         message: str = "Service error occurred",
         details: Optional[List[ErrorDetail]] = None,
         status_code: int = 503,
         headers: Optional[Dict[str, str]] = None
     ):
         super().__init__(
-            code=code,
             message=message,
             details=details,
             status_code=status_code,
@@ -28,7 +27,7 @@ class ExternalServiceException(ServiceException):
         if service_name:
             message = f"{service_name}: {message}"
         super().__init__(
-            code=ErrorCode.EXTERNAL_API_ERROR,
+            status_code=HTTPStatus.SERVICE_UNAVAILABLE,
             message=message,
             details=details
         )

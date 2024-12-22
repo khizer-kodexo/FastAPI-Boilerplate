@@ -1,4 +1,4 @@
-from .base import AppException, ErrorCode
+from .base import AppException, ErrorDetail
 from .http import (
     HTTPException,
     BadRequestException,

@@ -28,7 +28,7 @@ class ApplicationSettings(BaseSettings):
     
     # CORS Settings (TODO: add only allowed ones)
     BACKEND_CORS_ORIGINS: List[str] = ["*"]
-    ALLOWED_HOSTS: List[str] = ["*"] 
+    ALLOWED_HOSTS: List[str] = ["*.myapp.com", "localhost"] 
     
     # Rate Limiting
     RATE_LIMIT_PER_MINUTE: int = 60
